@@ -5,7 +5,7 @@ class UsersController {
     async create(request, response) {
         const { name, email, password, avatar } = request.body;
 
-        const userExists = await knex.select().from("users").where("email", email);
+        const userExists = await knex.select().from("users").where("email", email.toLowerCase());
         console.log(userExists)
 
         if (userExists.length) {
@@ -16,7 +16,7 @@ class UsersController {
 
         await knex("users").insert({
             name,
-            email,
+            email: email.toLowerCase(),
             password: hashedPassword,
             avatar
         })
