@@ -1,5 +1,6 @@
 const knex = require("../database/knex");
 const { hash, compare } = require("bcryptjs");
+const AppError = require("../utils/AppError");
 
 class UsersController {
     async create(request, response) {
@@ -9,7 +10,7 @@ class UsersController {
         console.log(userExists)
 
         if (userExists.length) {
-            throw new Error("This e-mail is already used.");
+            throw new AppError("This e-mail is already used.");
         }
 
         const hashedPassword = await hash(password, 8);
@@ -31,14 +32,14 @@ class UsersController {
         const user = await knex.select().from("users").where("id", id);
 
         if (!user.length) {
-            throw new Error("User not found.")
+            throw new AppError("User not found.")
         }
 
         const checkUserEmail = await knex.select().from("users").where("email", email.toLowerCase());
 
         
         if (checkUserEmail.length && checkUserEmail[0].id !== user[0].id) {
-            throw new Error("This email is already used.")
+            throw new AppError("This email is already used.")
         }
         
         user[0].name = name ?? user[0].name;
@@ -46,14 +47,14 @@ class UsersController {
         user[0].avatar = avatar ?? user[0].avatar;
 
         if (password && !old_password) {
-            throw new Error("You need insert the old password to update your password.");
+            throw new AppError("You need insert the old password to update your password.");
         }
 
         if (password && old_password) {
             const checkOldPassword = await compare(old_password, user[0].password);
 
             if (!checkOldPassword) {
-                throw new Error("Your old password don't match.")
+                throw new AppError("Your old password don't match.")
             }
 
             user[0].password = await hash(password, 8);
